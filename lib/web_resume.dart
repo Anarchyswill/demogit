@@ -1,45 +1,36 @@
-// Imports the necessary material library for Flutter widgets.
 import 'package:flutter/material.dart';
 
 void main() {
-  // The runApp function takes a widget and makes it the root of the widget tree.
-  runApp(const PortfolioApp());
+  runApp(const MyApp());
 }
 
-// This is a StatelessWidget, which means it doesn't have a mutable state.
-class PortfolioApp extends StatelessWidget {
-  const PortfolioApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // The MaterialApp widget sets up the basic visual structure for a Material Design app.
-    // We define a dark theme to match the user's design.
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Williams Favour - Portfolio',
+      title: 'Your Name - Full Portfolio',
       theme: ThemeData(
         brightness: Brightness.dark,
- 
-        primarySwatch: const MaterialColor(
-          _yellowPrimary,
-          <int, Color>{
-            50: Color(0xFFFFFDE7),
-            100: Color(0xFFFFF9C4),
-            200: Color(0xFFFFF59D),
-            300: Color(0xFFFFF176),
-            400: Color(0xFFFFEE58),
-            500: Color(_yellowPrimary),
-            600: Color(0xFFFDD835),
-            700: Color(0xFFFBC02D),
-            800: Color(0xFFF9A825),
-            900: Color(0xFFF57F17),
-          },
-        ),
+        primarySwatch: Colors.deepPurple,
+        scaffoldBackgroundColor: const Color(0xFF161616),
+        fontFamily: 'Inter',
         textTheme: const TextTheme(
-          displayLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 48),
-          displayMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32),
-          bodyLarge: TextStyle(color: Color(0xFFBDBDBD)),
-          bodyMedium: TextStyle(color: Color(0xFFBDBDBD)),
+          displayLarge: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 28, // Slightly larger for better hierarchy
+            fontWeight: FontWeight.w500,
+            color: Colors.deepPurple,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            color: Colors.white70,
+          ),
         ),
       ),
       home: const PortfolioPage(),
@@ -47,10 +38,6 @@ class PortfolioApp extends StatelessWidget {
   }
 }
 
-const int _yellowPrimary = 0xFFFFEB3B;
-
-// This is a StatefulWidget because we need to manage mutable state,
-// specifically the selected filter for the portfolio items.
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
 
@@ -58,99 +45,220 @@ class PortfolioPage extends StatefulWidget {
   State<PortfolioPage> createState() => _PortfolioPageState();
 }
 
-class _PortfolioPageState extends State<PortfolioPage> {
-  // A ScrollController to manage scrolling to different sections.
+class _PortfolioPageState extends State<PortfolioPage> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
-  
-  // A map of GlobalKeys to identify each section of the portfolio.
-  final Map<String, GlobalKey> _sectionKeys = {
-    'home': GlobalKey(),
-    'about': GlobalKey(),
-    'resume': GlobalKey(),
-    'portfolio': GlobalKey(),
-    'testimonials': GlobalKey(),
-    'contact': GlobalKey(),
-  };
+  final GlobalKey _homeKey = GlobalKey();
+  final GlobalKey _aboutKey = GlobalKey();
+  final GlobalKey _servicesKey = GlobalKey();
+  final GlobalKey _portfolioKey = GlobalKey();
+  final GlobalKey _resumeKey = GlobalKey();
+  final GlobalKey _blogKey = GlobalKey();
+  final GlobalKey _contactKey = GlobalKey();
 
-  String _selectedFilter = 'all';
+  late AnimationController _animationController;
+  late Animation<Color?> _colorAnimation;
 
-  // Mock data for the portfolio items.
-  final List<Map<String, dynamic>> _portfolioItems = [
-    {'category': 'graphic_design', 'image_url': 'https://placehold.co/400x300/FBC02D/white?text=Graphic+1', 'title': 'Graphic Design'},
-    {'category': 'web_design', 'image_url': 'https://placehold.co/400x300/FBC02D/white?text=Web+1', 'title': 'Web Design'},
-    {'category': 'photography', 'image_url': 'https://placehold.co/400x300/FBC02D/white?text=Photo+1', 'title': 'Photography'},
-    {'category': 'graphic_design', 'image_url': 'https://placehold.co/400x300/FBC02D/white?text=Graphic+2', 'title': 'Graphic Design'},
-    {'category': 'web_design', 'image_url': 'https://placehold.co/400x300/FBC02D/white?text=Web+2', 'title': 'Web Design'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
 
-  // Mock data for resume entries.
-  final List<Map<String, String>> _resumeEntries = [
-    {'title': 'Experience 1', 'subtitle': 'Company, 2019-2021', 'description': 'Lorem ipsum dolor sit amet...'},
-    {'title': 'Experience 2', 'subtitle': 'Company, 2017-2019', 'description': 'Lorem ipsum dolor sit amet...'},
-  ];
-  
-  // Mock data for testimonials.
-  final List<Map<String, String>> _testimonials = [
-    {'name': 'John Doe', 'text': 'Excellent work!', 'rating': '★★★★★'},
-    {'name': 'Jane Smith', 'text': 'Highly recommend.', 'rating': '★★★★★'},
-    {'name': 'Peter Jones', 'text': 'Amazing attention to detail.', 'rating': '★★★★★'},
-  ];
+    _colorAnimation = ColorTween(
+      begin: const Color(0xFF161616),
+      end: const Color(0xFF2D2D2D),
+    ).animate(_animationController);
+  }
+
+  void _scrollTo(GlobalKey key) {
+    if (key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // A LayoutBuilder is used to get the screen size and create a responsive layout.
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // If the screen width is less than 900, we use a mobile layout.
-        if (constraints.maxWidth < 1600) {
-          return _buildMobileLayout();
-        } else {
-          // Otherwise, we use the desktop layout with a sidebar.
-          return _buildDesktopLayout();
-        }
-      },
-    );
-  }
-  
- // This method builds the desktop layout with a fixed sidebar.
-  Widget _buildDesktopLayout() {
+    // Determine the maximum width for the centered content to maintain a clean, readable layout on large screens.
+    final double maxContentWidth = 800;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Williams Favour', style: TextStyle(color: Color(0xFFFBC02D))),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: _buildAppBar(),
       body: Stack(
-        children: <Widget>[
-          // The background image.
-          Positioned.fill(
-            child: Image.asset(
-              'lib/img/background.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // A Row to hold the sidebar and the main content.
-          Row(
-            children: <Widget>[
-              // The Sidebar widget.
-              _buildSidebar(),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    children: <Widget>[
-                      _buildHeroSection(),
-                      _buildAboutMeSection(),
-                      _buildResumeSection(),
-                      _buildPortfolioSection(),
-                      _buildTestimonialsSection(),
-                      _buildContactSection(),
+        children: [
+          // Background fluid animation container
+          AnimatedBuilder(
+            animation: _colorAnimation,
+            builder: (context, child) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _colorAnimation.value!,
+                      _colorAnimation.value!.withOpacity(0.8),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+              );
+            },
+          ),
+          Center( // Center the entire content column
+            child: ConstrainedBox( // Constrain the width of the content
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  children: [
+                    _buildHeroSection(context, _homeKey),
+                    _buildAboutSection(context, _aboutKey),
+                    _buildServicesSection(context, _servicesKey),
+                    _buildPortfolioSection(context, _portfolioKey),
+                    _buildResumeSection(context, _resumeKey),
+                    _buildBlogSection(context, _blogKey),
+                    _buildContactSection(context, _contactKey),
+                    const SizedBox(height: 50), // Add padding at the bottom
+                  ],
+                ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const Text(
+        'Gerold.',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      actions: [
+        _buildNavItem('Home', () => _scrollTo(_homeKey)),
+        _buildNavItem('About', () => _scrollTo(_aboutKey)),
+        _buildNavItem('Services', () => _scrollTo(_servicesKey)),
+        _buildNavItem('Portfolio', () => _scrollTo(_portfolioKey)),
+        _buildNavItem('Resume', () => _scrollTo(_resumeKey)),
+        _buildNavItem('Blog', () => _scrollTo(_blogKey)),
+        _buildNavItem('Contact', () => _scrollTo(_contactKey)),
+      ],
+    );
+  }
+
+  Widget _buildNavItem(String title, VoidCallback onTap) {
+    return TextButton(
+      onPressed: onTap,
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white70,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroSection(BuildContext context, GlobalKey key) {
+    return Container(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 80,
+            backgroundColor: Colors.deepPurple.shade700,
+            child: const Icon(Icons.person, size: 80, color: Colors.white),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Your Name Here',
+            style: Theme.of(context).textTheme.displayLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Mobile & Animation Developer',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'I\'m a passionate developer based in Abuja, Nigeria, currently focused on learning mobile development with Flutter and 3D animation with Blender. I am also interested in gaming and am on a journey to learn Spanish.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, color: Colors.white54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center, // Center the content
+        children: [
+          Text(
+            'About Me',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'I am a self-taught developer from Abuja, Nigeria, with a keen interest in creating beautiful and functional digital experiences. My current focus is on mastering Flutter for cross-platform mobile development and leveraging Blender for 3D animation and design. My journey is driven by a passion for technology and a constant desire to learn, whether it\'s a new programming language or the complexities of Spanish.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServicesSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'My Services',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // Using Wrap for a flexible, centered grid-like layout
+          Wrap(
+            alignment: WrapAlignment.center, // Center the items
+            spacing: 16, // Horizontal spacing
+            runSpacing: 16, // Vertical spacing
+            children: [
+              _buildServiceCard(context, 'Mobile App Development', 'Crafting responsive and dynamic mobile applications for iOS and Android using Flutter.', 300),
+              _buildServiceCard(context, '3D Animation', 'Creating captivating 3D animations and models with Blender for various digital media projects.', 300),
+              _buildServiceCard(context, 'UI/UX Design', 'Designing intuitive and user-friendly interfaces with a focus on seamless user experience.', 300),
             ],
           ),
         ],
@@ -158,426 +266,306 @@ class _PortfolioPageState extends State<PortfolioPage> {
     );
   }
 
-  // This method builds the mobile layout with a top-aligned sidebar in a Drawer.
-  Widget _buildMobileLayout() {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Williams Favour', style: TextStyle(color: Color(0xFFFBC02D))),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      drawer: Drawer(
-        child: _buildSidebar(isMobile: true),
-      ),
-      body: Stack(
-        children: <Widget>[
-          // The background image.
-          Positioned.fill(
-            child: Image.asset(
-              'lib/img/background.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // The main content of the portfolio, which is scrollable.
-          SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              children: <Widget>[
-                _buildHeroSection(),
-                _buildAboutMeSection(),
-                _buildResumeSection(),
-                _buildPortfolioSection(),
-                _buildTestimonialsSection(),
-                _buildContactSection(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  // A reusable method to build the sidebar for both desktop and mobile.
-  Widget _buildSidebar({bool isMobile = false}) {
-    return Container(
-      width: isMobile ? double.infinity : 250,
-      color: Colors.black,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          // Profile section at the top of the sidebar.
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            color: const Color(0xFF2C2C2E),
-            child: Column(
-              children: [
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Color.fromARGB(255, 77, 77, 77),
-                  child: Icon(Icons.person, size: 60, color: Colors.black),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Williams Favour',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const Text('Data Analyst / Mobile Developer', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
-              ],
-            ),
-          ),
-          // Navigation links in the sidebar.
-          _buildSidebarItem('HOME', 'home'),
-          _buildSidebarItem('ABOUT ME', 'about'),
-          _buildSidebarItem('RESUME', 'resume'),
-          _buildSidebarItem('PORTFOLIO', 'portfolio'),
-          _buildSidebarItem('CERTIFICATIONS', 'Certifications'),
-          _buildSidebarItem('CONTACT', 'contact'),
-        ],
-      ),
-    );
-  }
-
-  // A reusable method to build a single navigation item in the sidebar.
-  Widget _buildSidebarItem(String title, String key) {
-    return InkWell(
-      onTap: () {
-        // Scrolls to the selected section on tap.
-        _scrollController.animateTo(
-          (_sectionKeys[key]!.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero).dy,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-        child: Text(
-          title,
-          style: const TextStyle(color: Color.fromARGB(255, 178, 178, 178), fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-      ),
-    );
-  }
-
-  // A reusable method to build a header for each section.
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-  
-  // Method to build the Hero (intro) section.
-  Widget _buildHeroSection() {
-    return Card(
-      elevation: 8.0,
-      key: _sectionKeys['home'],
-      margin: const EdgeInsets.all(40),
-      color: const Color(0xFF2C2C2E),
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('HI THERE!', style: Theme.of(context).textTheme.displayMedium),
-          Text(
-            "I'M WILLIAMS",
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(color: const Color.fromARGB(255, 255, 255, 255)),
-          ),
-          const Text(
-            'DATA ANALYST / MOBILE DEVELOPMENT',
-            style: TextStyle(color: Color(0xFFBDBDBD), fontSize: 30),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "A proactive mobile developer and SEO analyst with a passion for continuous learning. My journey is defined by a data-driven approach and a keen interest in AI/ML.",
-            style: TextStyle(color: Color(0xFFBDBDBD)),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 173, 173, 173),
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            ),
-            child: const Text('MORE ABOUT ME'),
-          ),
-        ],
-      ),
-      )
-    );
-  }
-  
-  // Method to build the About Me section.
-  Widget _buildAboutMeSection() {
-    return Card(
-      elevation: 8.0,
-      color: const Color(0xFF2C2C2E),
-      key: _sectionKeys['about'],
-      margin: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          _buildSectionHeader('About Me'),
-          // The image and text section for "About Me".
-          Row(
+  Widget _buildServiceCard(BuildContext context, String title, String description, double width) {
+    return SizedBox(
+      width: width, // Fixed width for a uniform look
+      child: Card(
+        color: Colors.deepPurple.shade900.withOpacity(0.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                radius: 60,
-                backgroundColor: Color(0xFFFBC02D),
-                child: Icon(Icons.person, size: 70, color: Colors.black),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "I'm Benjamin Smith, Graphic Designer / Photographer",
-                      style: TextStyle(color: Color(0xFFFBC02D), fontSize: 18),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-                      style: TextStyle(color: Color(0xFFBDBDBD)),
-                    ),
-                    const SizedBox(height: 20),
-                    // Stats section.
-                    Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      children: [
-                        _buildStatBox('15+', 'Years Experience'),
-                        _buildStatBox('350+', 'Happy Clients'),
-                        _buildStatBox('200+', 'Projects Done'),
-                        _buildStatBox('45k', 'Followers'),
-                      ],
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  // Reusable method for the stats boxes.
-  Widget _buildStatBox(String count, String label) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2E),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(count, style: Theme.of(context).textTheme.displayMedium?.copyWith(color: const Color(0xFFFBC02D))),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-  
-  // Method to build the Resume section.
-  Widget _buildResumeSection() {
-    return Container(
-      key: _sectionKeys['resume'],
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          _buildSectionHeader('Resume'),
-          Wrap(
-            spacing: 40,
-            runSpacing: 40,
-            children: [
-              // Column for experience.
-              SizedBox(
-                width: 400,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Experience', style: TextStyle(color: Color(0xFFFBC02D), fontSize: 20)),
-                    const SizedBox(height: 10),
-                    ..._resumeEntries.map((entry) => _buildResumeItem(entry)).toList(),
-                  ],
-                ),
-              ),
-              // Column for education (mocked to look like experience).
-              SizedBox(
-                width: 400,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Education', style: TextStyle(color: Color(0xFFFBC02D), fontSize: 20)),
-                    const SizedBox(height: 10),
-                    ..._resumeEntries.map((entry) => _buildResumeItem(entry)).toList(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // Reusable method for a single resume item.
-  Widget _buildResumeItem(Map<String, String> entry) {
-    return Card(
-      color: const Color(0xFF2C2C2E),
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(entry['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            Text(entry['subtitle']!, style: const TextStyle(color: Color(0xFFFBC02D))),
-            const SizedBox(height: 10),
-            Text(entry['description']!, style: const TextStyle(color: Color(0xFFBDBDBD))),
-          ],
         ),
       ),
     );
   }
 
-  // Method to build the Portfolio section.
-  Widget _buildPortfolioSection() {
-    return Container(
-      key: _sectionKeys['portfolio'],
-      padding: const EdgeInsets.all(40),
+  Widget _buildPortfolioSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _buildSectionHeader('Portfolio'),
-          // Filter buttons for the portfolio.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFilterButton('all', 'ALL'),
-              const SizedBox(width: 10),
-              _buildFilterButton('graphic_design', 'GRAPHIC DESIGN'),
-              const SizedBox(width: 10),
-              _buildFilterButton('web_design', 'WEB DESIGN'),
-              const SizedBox(width: 10),
-              _buildFilterButton('photography', 'PHOTOGRAPHY'),
-            ],
+          Text(
+            'Portfolio',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 30),
-          // Grid of portfolio items.
+          const SizedBox(height: 24),
           Wrap(
-            spacing: 20,
-            runSpacing: 20,
-            children: _portfolioItems
-                .where((item) => _selectedFilter == 'all' || item['category'] == _selectedFilter)
-                .map((item) => _buildPortfolioItem(item))
-                .toList(),
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 16,
+            children: [
+              _buildPortfolioCard(
+                context,
+                'Flutter E-commerce App',
+                'A mobile e-commerce application built with Flutter and Firebase.',
+                Icons.shopping_cart,
+                300
+              ),
+              _buildPortfolioCard(
+                context,
+                'Blender 3D Character Rig',
+                'A rigged 3D character model created in Blender.',
+                Icons.person_pin_circle,
+                300
+              ),
+              _buildPortfolioCard(
+                context,
+                'Educational Spanish App',
+                'An app for learning Spanish vocabulary and grammar, built with Flutter.',
+                Icons.school,
+                300
+              ),
+              _buildPortfolioCard(
+                context,
+                'Gaming Dashboard',
+                'A responsive dashboard for tracking game stats and achievements.',
+                Icons.videogame_asset,
+                300
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-  
-  // Reusable method for a single portfolio item.
-  Widget _buildPortfolioItem(Map<String, dynamic> item) {
+
+  Widget _buildPortfolioCard(
+      BuildContext context, String title, String description, IconData icon, double width) {
     return SizedBox(
-      width: 400,
+      width: width,
       child: Card(
-        color: const Color(0xFF2C2C2E),
-        child: Column(
-          children: [
-            Image.network(item['image_url'], fit: BoxFit.cover),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(item['title'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        color: Colors.deepPurple.shade900.withOpacity(0.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 40, color: Colors.deepPurple),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResumeSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Resume',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          _buildResumeCard('Education', [
+            _buildResumeEntry(
+                'Self-Taught', 'Mobile & 3D Animation Development', '2023 - Present'),
+          ]),
+          const SizedBox(height: 24),
+          _buildResumeCard('Experience', [
+            _buildResumeEntry(
+                'Freelance Developer', 'Mobile & Animation Projects', '2024 - Present'),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumeCard(String title, List<Widget> entries) {
+    return Card(
+      color: Colors.deepPurple.shade900.withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...entries,
           ],
         ),
       ),
     );
   }
 
-  // Reusable method for a portfolio filter button.
-  Widget _buildFilterButton(String filter, String label) {
-    final bool isSelected = _selectedFilter == filter;
-    return TextButton(
-      onPressed: () {
-        setState(() {
-          _selectedFilter = filter;
-        });
-      },
-      style: TextButton.styleFrom(
-        foregroundColor: isSelected ? Colors.black : const Color(0xFFBDBDBD),
-        backgroundColor: isSelected ? const Color(0xFFFBC02D) : Colors.transparent,
-        side: BorderSide(color: isSelected ? Colors.transparent : const Color(0xFFBDBDBD)),
-      ),
-      child: Text(label),
-    );
-  }
-
-  // Method to build the Testimonials section.
-  Widget _buildTestimonialsSection() {
-    return Container(
-      key: _sectionKeys['testimonials'],
-      padding: const EdgeInsets.all(40),
+  Widget _buildResumeEntry(String title, String subtitle, String date) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Testimonials'),
-          Wrap(
-            spacing: 20,
-            runSpacing: 20,
-            children: _testimonials.map((testimonial) => _buildTestimonialItem(testimonial)).toList(),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
+              color: Colors.white70,
+            ),
+          ),
+          Text(
+            date,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white54,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // Reusable method for a single testimonial item.
-  Widget _buildTestimonialItem(Map<String, String> testimonial) {
+  Widget _buildBlogSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Blog',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          _buildBlogCard(context, 'My First Flutter App', 'A step-by-step guide to building my first mobile application.', '2024-09-01'),
+          _buildBlogCard(context, 'Exploring 3D Art in Blender', 'My journey into the world of 3D modeling and animation.', '2024-08-15'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlogCard(BuildContext context, String title, String description, String date) {
     return Card(
-      color: const Color(0xFF2C2C2E),
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(testimonial['name']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            Text(testimonial['rating']!, style: const TextStyle(color: Color(0xFFFBC02D))),
-            const SizedBox(height: 10),
-            Text(testimonial['text']!, style: const TextStyle(color: Color(0xFFBDBDBD))),
-          ],
+      color: Colors.deepPurple.shade900.withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: () {},
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Published: $date',
+                style: const TextStyle(fontSize: 14, color: Colors.white54),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
-  // Method to build the Contact section.
-  Widget _buildContactSection() {
-    return Container(
-      key: _sectionKeys['contact'],
-      padding: const EdgeInsets.all(40),
+
+  Widget _buildContactSection(BuildContext context, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _buildSectionHeader('Contact'),
-          // The contact form is a placeholder, as it requires a backend.
-          Container(
-            padding: const EdgeInsets.all(20),
-            color: const Color(0xFF2C2C2E),
-            child: const Text('Contact form placeholder.', style: TextStyle(color: Color(0xFFBDBDBD))),
+          Text(
+            'Contact',
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          const Text('THANKS FOR PATIENCE!', style: TextStyle(color: Color(0xFFBDBDBD))),
+          const SizedBox(height: 16),
+          const Text(
+            'If you have a project or a collaboration in mind, feel free to reach out!',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          _buildSocialLink('GitHub', Icons.code),
+          _buildSocialLink('LinkedIn', Icons.work),
+          _buildSocialLink('Email: your.email@example.com', Icons.email),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialLink(String text, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.deepPurple),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(
+                fontSize: 16, color: Colors.white, decoration: TextDecoration.underline),
+          ),
         ],
       ),
     );
